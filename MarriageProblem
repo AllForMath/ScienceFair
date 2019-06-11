@@ -1,0 +1,185 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace GoingBackSecretaryProblem
+{
+    class Program
+    {
+        public static double delta = 0.0005;
+        public static double number = 500;
+        public static int StoppingPoint = 42;
+        public static int OriginalStoppingPoint = (int)(number * 0.367);
+        public static int times = 0;
+        public static bool running = false;
+        public static int success = 0;
+
+        static void Main(string[] args)
+        {
+            while (true)
+            {
+                int count = 0;
+                for (int i = 1; i <= 1000000; i++)
+                    if (Start(Load((int)number)))
+                        count++;
+                Console.WriteLine(count);
+                //Console.ReadLine();
+            }
+        }
+
+        public static void OrderFresh(int r, int s)
+        {
+            double RealS = s;
+            if (s * delta > 1)
+                RealS = 1 / delta - 1;
+            if (r < OriginalStoppingPoint)
+                r = OriginalStoppingPoint - 1;
+            while (r * (1 - b(r + 2)) -1 / delta + RealS < 0)
+                r++;
+            if (r > number)
+                r = (int)number;
+            StoppingPoint = r;
+            Console.WriteLine(ShowPossibility());
+            ShowPossibility();
+        }
+
+        public static void JustKeepGoing()
+        {
+            times++;
+            running = true;
+        }
+
+        public static bool Start(List<int> L)
+        {
+            int order = 0;
+            int minimum = (int)number;
+            int i = 0;
+            while (i <= StoppingPoint - 1)
+            {
+                i++;
+                order++;
+                if (L.ElementAt(i-1) < minimum)
+                {
+                    minimum = L.ElementAt(i-1);
+                    order = 0;
+                }
+                OrderFresh(i, order);
+            }
+
+
+
+            //Random r = new Random(Guid.NewGuid().GetHashCode());
+            Random r = new Random(DateTime.Now.Ticks.GetHashCode());
+            if (Possibility(order) >= r.NextDouble())
+            {
+                if (L.ElementAt(StoppingPoint - order - 1) == 1)
+                {
+                    if (running)
+                    {
+                        running = false;
+                        success++;
+                    }
+                    return true;
+                }
+                if (running)
+                    running = false;
+                return false;
+            }
+
+                
+            for (int j = i; j < number; j++)
+            {
+                //order++;
+                //OrderFresh(j + 1, order);
+                if (L.ElementAt(j) < minimum && L.ElementAt(j) != 1)
+                {
+                    if (running)
+                        running = false;
+                    return false;
+                }
+                if (L.ElementAt(j) == 1)
+                {
+                    if(running)
+                    {
+                        running = false;
+                        success++;
+                    }
+                    return true;
+                }
+            }
+            running = false;
+            return false;
+        }
+
+        public static List<int> Load(int n)
+        {
+            Random r = new Random(Guid.NewGuid().GetHashCode());
+            List<int> L = new List<int>();
+            for (int i = 1; i <= number; i++)
+            {
+                L.Insert(r.Next(0, L.Count + 1), i);
+            }
+            return L;
+        }
+
+        public static double Possibility(int s)
+        {
+            if (s * delta < 1)
+                return 1 - s * delta;
+            return 0;
+        }
+
+        public static double ShowPossibility()
+        {
+            double p = 0;
+            //for (int i = 0; i <= StoppingPoint - 1; i++)
+            //{
+               // OrderFresh(1, i);
+               // Console.WriteLine("stopping point = " + StoppingPoint);
+               // p += 1 / number * (PFunc() + (StoppingPoint - 1) * b(StoppingPoint + 1) - Test());
+            //}
+            p /= StoppingPoint;
+            return 1 / number * (PFunc() + (StoppingPoint - 1) * b(StoppingPoint + 1) - Test());
+            return p;
+        }
+        public static double b(int n)
+        {
+            double j = 0;
+            for (double i = n; i <= number; i++)
+            {
+                j += (1 / (i - 1));
+            }
+
+            return j;
+        }
+
+        public static double Test()
+        {
+            double j = 0;
+            for (int i = 1; i <= StoppingPoint - 1; i++)
+                j += Possibility(i) * b(StoppingPoint + 1);
+            return j;
+        }
+
+        public static double PFunc()
+        {
+            double j = 0;
+            for (int i = 0; i <= StoppingPoint - 1; i++)
+            {
+                j += Possibility(i);
+            }
+            return j;
+        }
+
+        public static double PFunc2()
+        {
+            double j = 0;
+            for (double i = StoppingPoint + 1; i<= number; i++)
+            {
+                j += StoppingPoint / (i - 1);
+            }
+            return j;
+        }
+    }
+}
